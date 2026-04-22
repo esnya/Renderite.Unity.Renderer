@@ -5,11 +5,12 @@ using UnityEditor;
 using System.IO;
 using System;
 using System.Diagnostics;
+using System.Linq;
 
 public class AppBuilder
 {
     public static string AssetsRoot => Application.dataPath;
-    public static string BuildRoot => Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(AssetsRoot)), "Builds");
+    public static string BuildRoot => Path.Combine(Path.GetDirectoryName(AssetsRoot), "Builds");
     public static string PatchTool => Path.Combine(Path.GetDirectoryName(AssetsRoot), "Patcher", "UnityApplicationPatcherCLI.exe");
 
     public static string AppName => Renderite.Shared.Helper.PROCESS_NAME;
@@ -38,7 +39,11 @@ public class AppBuilder
 
     static void UpdateDefines(ref string defines)
     {
-        if (Directory.Exists(Path.Combine(AssetsRoot, "UniversalMediaPlayer")))
+        var umpRoot = Path.Combine(AssetsRoot, "UniversalMediaPlayer");
+        var hasUmpAssets = Directory.Exists(umpRoot) &&
+            Directory.EnumerateFileSystemEntries(umpRoot, "*", SearchOption.AllDirectories).Any();
+
+        if (hasUmpAssets)
         {
             UnityEngine.Debug.Log($"Compiling with UMP support: ON");
             defines += "UMP_SUPPORTED;";

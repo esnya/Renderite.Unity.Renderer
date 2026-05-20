@@ -33,6 +33,8 @@ namespace Valve.VR
         
         private static SteamVR_Input_ActionSet_HPReverb p_HPReverb;
         
+        private static SteamVR_Input_ActionSet_Focus3 p_Focus3;
+        
         public static SteamVR_Input_ActionSet_Generic Generic
         {
             get
@@ -97,6 +99,14 @@ namespace Valve.VR
             }
         }
         
+        public static SteamVR_Input_ActionSet_Focus3 Focus3
+        {
+            get
+            {
+                return SteamVR_Actions.p_Focus3.GetCopy<SteamVR_Input_ActionSet_Focus3>();
+            }
+        }
+        
         private static void StartPreInitActionSets()
         {
             SteamVR_Actions.p_Generic = ((SteamVR_Input_ActionSet_Generic)(SteamVR_ActionSet.Create<SteamVR_Input_ActionSet_Generic>("/actions/Generic")));
@@ -107,6 +117,7 @@ namespace Valve.VR
             SteamVR_Actions.p_Cosmos = ((SteamVR_Input_ActionSet_Cosmos)(SteamVR_ActionSet.Create<SteamVR_Input_ActionSet_Cosmos>("/actions/Cosmos")));
             SteamVR_Actions.p_PicoNeo = ((SteamVR_Input_ActionSet_PicoNeo)(SteamVR_ActionSet.Create<SteamVR_Input_ActionSet_PicoNeo>("/actions/PicoNeo")));
             SteamVR_Actions.p_HPReverb = ((SteamVR_Input_ActionSet_HPReverb)(SteamVR_ActionSet.Create<SteamVR_Input_ActionSet_HPReverb>("/actions/HPReverb")));
+            SteamVR_Actions.p_Focus3 = ((SteamVR_Input_ActionSet_Focus3)(SteamVR_ActionSet.Create<SteamVR_Input_ActionSet_Focus3>("/actions/Focus3")));
             Valve.VR.SteamVR_Input.actionSets = new Valve.VR.SteamVR_ActionSet[] {
                     SteamVR_Actions.Generic,
                     SteamVR_Actions.Vive,
@@ -115,7 +126,8 @@ namespace Valve.VR
                     SteamVR_Actions.Knuckles,
                     SteamVR_Actions.Cosmos,
                     SteamVR_Actions.PicoNeo,
-                    SteamVR_Actions.HPReverb};
+                    SteamVR_Actions.HPReverb,
+                    SteamVR_Actions.Focus3};
         }
     }
 }

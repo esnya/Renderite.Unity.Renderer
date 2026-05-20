@@ -257,6 +257,44 @@ namespace Valve.VR
         
         private static SteamVR_Action_Vibration p_hPReverb_haptic;
         
+        private static SteamVR_Action_Vector2 p_focus3_joystick;
+        
+        private static SteamVR_Action_Boolean p_focus3_joystick_touch;
+        
+        private static SteamVR_Action_Boolean p_focus3_joystick_click;
+        
+        private static SteamVR_Action_Single p_focus3_trigger;
+        
+        private static SteamVR_Action_Boolean p_focus3_trigger_touch;
+        
+        private static SteamVR_Action_Boolean p_focus3_trigger_click;
+        
+        private static SteamVR_Action_Single p_focus3_grip;
+        
+        private static SteamVR_Action_Boolean p_focus3_grip_touch;
+        
+        private static SteamVR_Action_Boolean p_focus3_grip_click;
+        
+        private static SteamVR_Action_Boolean p_focus3_button_a;
+        
+        private static SteamVR_Action_Boolean p_focus3_button_b;
+        
+        private static SteamVR_Action_Boolean p_focus3_button_x;
+        
+        private static SteamVR_Action_Boolean p_focus3_button_y;
+        
+        private static SteamVR_Action_Boolean p_focus3_menu;
+        
+        private static SteamVR_Action_Boolean p_focus3_parking_touch;
+        
+        private static SteamVR_Action_Skeleton p_focus3_left_hand;
+        
+        private static SteamVR_Action_Skeleton p_focus3_right_hand;
+        
+        private static SteamVR_Action_Pose p_focus3_pose;
+        
+        private static SteamVR_Action_Vibration p_focus3_haptic;
+        
         public static SteamVR_Action_Pose generic_Pose
         {
             get
@@ -1217,6 +1255,158 @@ namespace Valve.VR
             }
         }
         
+        public static SteamVR_Action_Vector2 focus3_joystick
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_joystick.GetCopy<SteamVR_Action_Vector2>();
+            }
+        }
+        
+        public static SteamVR_Action_Boolean focus3_joystick_touch
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_joystick_touch.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
+        public static SteamVR_Action_Boolean focus3_joystick_click
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_joystick_click.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
+        public static SteamVR_Action_Single focus3_trigger
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_trigger.GetCopy<SteamVR_Action_Single>();
+            }
+        }
+        
+        public static SteamVR_Action_Boolean focus3_trigger_touch
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_trigger_touch.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
+        public static SteamVR_Action_Boolean focus3_trigger_click
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_trigger_click.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
+        public static SteamVR_Action_Single focus3_grip
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_grip.GetCopy<SteamVR_Action_Single>();
+            }
+        }
+        
+        public static SteamVR_Action_Boolean focus3_grip_touch
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_grip_touch.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
+        public static SteamVR_Action_Boolean focus3_grip_click
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_grip_click.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
+        public static SteamVR_Action_Boolean focus3_button_a
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_button_a.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
+        public static SteamVR_Action_Boolean focus3_button_b
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_button_b.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
+        public static SteamVR_Action_Boolean focus3_button_x
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_button_x.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
+        public static SteamVR_Action_Boolean focus3_button_y
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_button_y.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
+        public static SteamVR_Action_Boolean focus3_menu
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_menu.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
+        public static SteamVR_Action_Boolean focus3_parking_touch
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_parking_touch.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
+        public static SteamVR_Action_Skeleton focus3_left_hand
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_left_hand.GetCopy<SteamVR_Action_Skeleton>();
+            }
+        }
+        
+        public static SteamVR_Action_Skeleton focus3_right_hand
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_right_hand.GetCopy<SteamVR_Action_Skeleton>();
+            }
+        }
+        
+        public static SteamVR_Action_Pose focus3_pose
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_pose.GetCopy<SteamVR_Action_Pose>();
+            }
+        }
+        
+        public static SteamVR_Action_Vibration focus3_haptic
+        {
+            get
+            {
+                return SteamVR_Actions.p_focus3_haptic.GetCopy<SteamVR_Action_Vibration>();
+            }
+        }
+        
         private static void InitializeActionArrays()
         {
             Valve.VR.SteamVR_Input.actions = new Valve.VR.SteamVR_Action[] {
@@ -1339,7 +1529,26 @@ namespace Valve.VR
                     SteamVR_Actions.hPReverb_pose,
                     SteamVR_Actions.hPReverb_left_hand,
                     SteamVR_Actions.hPReverb_right_hand,
-                    SteamVR_Actions.hPReverb_haptic};
+                    SteamVR_Actions.hPReverb_haptic,
+                    SteamVR_Actions.focus3_joystick,
+                    SteamVR_Actions.focus3_joystick_touch,
+                    SteamVR_Actions.focus3_joystick_click,
+                    SteamVR_Actions.focus3_trigger,
+                    SteamVR_Actions.focus3_trigger_touch,
+                    SteamVR_Actions.focus3_trigger_click,
+                    SteamVR_Actions.focus3_grip,
+                    SteamVR_Actions.focus3_grip_touch,
+                    SteamVR_Actions.focus3_grip_click,
+                    SteamVR_Actions.focus3_button_a,
+                    SteamVR_Actions.focus3_button_b,
+                    SteamVR_Actions.focus3_button_x,
+                    SteamVR_Actions.focus3_button_y,
+                    SteamVR_Actions.focus3_menu,
+                    SteamVR_Actions.focus3_parking_touch,
+                    SteamVR_Actions.focus3_left_hand,
+                    SteamVR_Actions.focus3_right_hand,
+                    SteamVR_Actions.focus3_pose,
+                    SteamVR_Actions.focus3_haptic};
             Valve.VR.SteamVR_Input.actionsIn = new Valve.VR.ISteamVR_Action_In[] {
                     SteamVR_Actions.generic_Pose,
                     SteamVR_Actions.generic_Strength,
@@ -1452,7 +1661,25 @@ namespace Valve.VR
                     SteamVR_Actions.hPReverb_trigger_click,
                     SteamVR_Actions.hPReverb_pose,
                     SteamVR_Actions.hPReverb_left_hand,
-                    SteamVR_Actions.hPReverb_right_hand};
+                    SteamVR_Actions.hPReverb_right_hand,
+                    SteamVR_Actions.focus3_joystick,
+                    SteamVR_Actions.focus3_joystick_touch,
+                    SteamVR_Actions.focus3_joystick_click,
+                    SteamVR_Actions.focus3_trigger,
+                    SteamVR_Actions.focus3_trigger_touch,
+                    SteamVR_Actions.focus3_trigger_click,
+                    SteamVR_Actions.focus3_grip,
+                    SteamVR_Actions.focus3_grip_touch,
+                    SteamVR_Actions.focus3_grip_click,
+                    SteamVR_Actions.focus3_button_a,
+                    SteamVR_Actions.focus3_button_b,
+                    SteamVR_Actions.focus3_button_x,
+                    SteamVR_Actions.focus3_button_y,
+                    SteamVR_Actions.focus3_menu,
+                    SteamVR_Actions.focus3_parking_touch,
+                    SteamVR_Actions.focus3_left_hand,
+                    SteamVR_Actions.focus3_right_hand,
+                    SteamVR_Actions.focus3_pose};
             Valve.VR.SteamVR_Input.actionsOut = new Valve.VR.ISteamVR_Action_Out[] {
                     SteamVR_Actions.generic_Haptic,
                     SteamVR_Actions.vive_haptic,
@@ -1461,7 +1688,8 @@ namespace Valve.VR
                     SteamVR_Actions.knuckles_haptic,
                     SteamVR_Actions.cosmos_haptic,
                     SteamVR_Actions.picoNeo_haptic,
-                    SteamVR_Actions.hPReverb_haptic};
+                    SteamVR_Actions.hPReverb_haptic,
+                    SteamVR_Actions.focus3_haptic};
             Valve.VR.SteamVR_Input.actionsVibration = new Valve.VR.SteamVR_Action_Vibration[] {
                     SteamVR_Actions.generic_Haptic,
                     SteamVR_Actions.vive_haptic,
@@ -1470,7 +1698,8 @@ namespace Valve.VR
                     SteamVR_Actions.knuckles_haptic,
                     SteamVR_Actions.cosmos_haptic,
                     SteamVR_Actions.picoNeo_haptic,
-                    SteamVR_Actions.hPReverb_haptic};
+                    SteamVR_Actions.hPReverb_haptic,
+                    SteamVR_Actions.focus3_haptic};
             Valve.VR.SteamVR_Input.actionsPose = new Valve.VR.SteamVR_Action_Pose[] {
                     SteamVR_Actions.generic_Pose,
                     SteamVR_Actions.vive_pose,
@@ -1479,7 +1708,8 @@ namespace Valve.VR
                     SteamVR_Actions.knuckles_pose,
                     SteamVR_Actions.cosmos_pose,
                     SteamVR_Actions.picoNeo_pose,
-                    SteamVR_Actions.hPReverb_pose};
+                    SteamVR_Actions.hPReverb_pose,
+                    SteamVR_Actions.focus3_pose};
             Valve.VR.SteamVR_Input.actionsBoolean = new Valve.VR.SteamVR_Action_Boolean[] {
                     SteamVR_Actions.generic_TouchingStrength,
                     SteamVR_Actions.generic_TouchingAxis,
@@ -1546,7 +1776,19 @@ namespace Valve.VR
                     SteamVR_Actions.hPReverb_grip_click,
                     SteamVR_Actions.hPReverb_grip_touch,
                     SteamVR_Actions.hPReverb_joystick_click,
-                    SteamVR_Actions.hPReverb_trigger_click};
+                    SteamVR_Actions.hPReverb_trigger_click,
+                    SteamVR_Actions.focus3_joystick_touch,
+                    SteamVR_Actions.focus3_joystick_click,
+                    SteamVR_Actions.focus3_trigger_touch,
+                    SteamVR_Actions.focus3_trigger_click,
+                    SteamVR_Actions.focus3_grip_touch,
+                    SteamVR_Actions.focus3_grip_click,
+                    SteamVR_Actions.focus3_button_a,
+                    SteamVR_Actions.focus3_button_b,
+                    SteamVR_Actions.focus3_button_x,
+                    SteamVR_Actions.focus3_button_y,
+                    SteamVR_Actions.focus3_menu,
+                    SteamVR_Actions.focus3_parking_touch};
             Valve.VR.SteamVR_Input.actionsSingle = new Valve.VR.SteamVR_Action_Single[] {
                     SteamVR_Actions.generic_Strength,
                     SteamVR_Actions.vive_trigger,
@@ -1559,7 +1801,9 @@ namespace Valve.VR
                     SteamVR_Actions.cosmos_trigger,
                     SteamVR_Actions.picoNeo_trigger,
                     SteamVR_Actions.hPReverb_grip,
-                    SteamVR_Actions.hPReverb_trigger};
+                    SteamVR_Actions.hPReverb_trigger,
+                    SteamVR_Actions.focus3_trigger,
+                    SteamVR_Actions.focus3_grip};
             Valve.VR.SteamVR_Input.actionsVector2 = new Valve.VR.SteamVR_Action_Vector2[] {
                     SteamVR_Actions.generic_Axis,
                     SteamVR_Actions.vive_touchpad,
@@ -1570,7 +1814,8 @@ namespace Valve.VR
                     SteamVR_Actions.knuckles_touchpad,
                     SteamVR_Actions.cosmos_joystick,
                     SteamVR_Actions.picoNeo_thumbstick,
-                    SteamVR_Actions.hPReverb_joystick};
+                    SteamVR_Actions.hPReverb_joystick,
+                    SteamVR_Actions.focus3_joystick};
             Valve.VR.SteamVR_Input.actionsVector3 = new Valve.VR.SteamVR_Action_Vector3[0];
             Valve.VR.SteamVR_Input.actionsSkeleton = new Valve.VR.SteamVR_Action_Skeleton[] {
                     SteamVR_Actions.generic_LeftHand,
@@ -1588,7 +1833,9 @@ namespace Valve.VR
                     SteamVR_Actions.picoNeo_left_hand,
                     SteamVR_Actions.picoNeo_right_hand,
                     SteamVR_Actions.hPReverb_left_hand,
-                    SteamVR_Actions.hPReverb_right_hand};
+                    SteamVR_Actions.hPReverb_right_hand,
+                    SteamVR_Actions.focus3_left_hand,
+                    SteamVR_Actions.focus3_right_hand};
             Valve.VR.SteamVR_Input.actionsNonPoseNonSkeletonIn = new Valve.VR.ISteamVR_Action_In[] {
                     SteamVR_Actions.generic_Strength,
                     SteamVR_Actions.generic_Axis,
@@ -1677,7 +1924,22 @@ namespace Valve.VR
                     SteamVR_Actions.hPReverb_joystick,
                     SteamVR_Actions.hPReverb_joystick_click,
                     SteamVR_Actions.hPReverb_trigger,
-                    SteamVR_Actions.hPReverb_trigger_click};
+                    SteamVR_Actions.hPReverb_trigger_click,
+                    SteamVR_Actions.focus3_joystick,
+                    SteamVR_Actions.focus3_joystick_touch,
+                    SteamVR_Actions.focus3_joystick_click,
+                    SteamVR_Actions.focus3_trigger,
+                    SteamVR_Actions.focus3_trigger_touch,
+                    SteamVR_Actions.focus3_trigger_click,
+                    SteamVR_Actions.focus3_grip,
+                    SteamVR_Actions.focus3_grip_touch,
+                    SteamVR_Actions.focus3_grip_click,
+                    SteamVR_Actions.focus3_button_a,
+                    SteamVR_Actions.focus3_button_b,
+                    SteamVR_Actions.focus3_button_x,
+                    SteamVR_Actions.focus3_button_y,
+                    SteamVR_Actions.focus3_menu,
+                    SteamVR_Actions.focus3_parking_touch};
         }
         
         private static void PreInitActions()
@@ -1802,6 +2064,25 @@ namespace Valve.VR
             SteamVR_Actions.p_hPReverb_left_hand = ((SteamVR_Action_Skeleton)(SteamVR_Action.Create<SteamVR_Action_Skeleton>("/actions/HPReverb/in/left_hand")));
             SteamVR_Actions.p_hPReverb_right_hand = ((SteamVR_Action_Skeleton)(SteamVR_Action.Create<SteamVR_Action_Skeleton>("/actions/HPReverb/in/right_hand")));
             SteamVR_Actions.p_hPReverb_haptic = ((SteamVR_Action_Vibration)(SteamVR_Action.Create<SteamVR_Action_Vibration>("/actions/HPReverb/out/haptic")));
+            SteamVR_Actions.p_focus3_joystick = ((SteamVR_Action_Vector2)(SteamVR_Action.Create<SteamVR_Action_Vector2>("/actions/Focus3/in/joystick")));
+            SteamVR_Actions.p_focus3_joystick_touch = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/Focus3/in/joystick_touch")));
+            SteamVR_Actions.p_focus3_joystick_click = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/Focus3/in/joystick_click")));
+            SteamVR_Actions.p_focus3_trigger = ((SteamVR_Action_Single)(SteamVR_Action.Create<SteamVR_Action_Single>("/actions/Focus3/in/trigger")));
+            SteamVR_Actions.p_focus3_trigger_touch = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/Focus3/in/trigger_touch")));
+            SteamVR_Actions.p_focus3_trigger_click = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/Focus3/in/trigger_click")));
+            SteamVR_Actions.p_focus3_grip = ((SteamVR_Action_Single)(SteamVR_Action.Create<SteamVR_Action_Single>("/actions/Focus3/in/grip")));
+            SteamVR_Actions.p_focus3_grip_touch = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/Focus3/in/grip_touch")));
+            SteamVR_Actions.p_focus3_grip_click = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/Focus3/in/grip_click")));
+            SteamVR_Actions.p_focus3_button_a = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/Focus3/in/button_a")));
+            SteamVR_Actions.p_focus3_button_b = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/Focus3/in/button_b")));
+            SteamVR_Actions.p_focus3_button_x = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/Focus3/in/button_x")));
+            SteamVR_Actions.p_focus3_button_y = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/Focus3/in/button_y")));
+            SteamVR_Actions.p_focus3_menu = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/Focus3/in/menu")));
+            SteamVR_Actions.p_focus3_parking_touch = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/Focus3/in/parking_touch")));
+            SteamVR_Actions.p_focus3_left_hand = ((SteamVR_Action_Skeleton)(SteamVR_Action.Create<SteamVR_Action_Skeleton>("/actions/Focus3/in/left_hand")));
+            SteamVR_Actions.p_focus3_right_hand = ((SteamVR_Action_Skeleton)(SteamVR_Action.Create<SteamVR_Action_Skeleton>("/actions/Focus3/in/right_hand")));
+            SteamVR_Actions.p_focus3_pose = ((SteamVR_Action_Pose)(SteamVR_Action.Create<SteamVR_Action_Pose>("/actions/Focus3/in/pose")));
+            SteamVR_Actions.p_focus3_haptic = ((SteamVR_Action_Vibration)(SteamVR_Action.Create<SteamVR_Action_Vibration>("/actions/Focus3/out/haptic")));
         }
     }
 }

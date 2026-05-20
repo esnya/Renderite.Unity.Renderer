@@ -599,6 +599,103 @@
       "name": "/actions/HPReverb/out/haptic",
       "type": "vibration",
       "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/joystick",
+      "type": "vector2",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/joystick_touch",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/joystick_click",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/trigger",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/trigger_touch",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/trigger_click",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/grip",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/grip_touch",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/grip_click",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/button_a",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/button_b",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/button_x",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/button_y",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/menu",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/parking_touch",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/left_hand",
+      "type": "skeleton",
+      "skeleton": "/skeleton/hand/left",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/right_hand",
+      "type": "skeleton",
+      "skeleton": "/skeleton/hand/right",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/in/pose",
+      "type": "pose",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/Focus3/out/haptic",
+      "type": "vibration",
+      "requirement": "optional"
     }
   ],
   "action_sets": [
@@ -633,6 +730,10 @@
     {
       "name": "/actions/HPReverb",
       "usage": "single"
+    },
+    {
+      "name": "/actions/Focus3",
+      "usage": "single"
     }
   ],
   "default_bindings": [
@@ -655,6 +756,10 @@
     {
       "controller_type": "vive_cosmos_controller",
       "binding_url": "bindings_vive_cosmos_controller.json"
+    },
+    {
+      "controller_type": "vive_focus3_controller",
+      "binding_url": "bindings_vive_focus3_controller.json"
     },
     {
       "controller_type": "hpmotioncontroller",

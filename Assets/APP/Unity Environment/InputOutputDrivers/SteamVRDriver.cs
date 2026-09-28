@@ -17,7 +17,7 @@ struct HapticSimulationData
 
 class SteamControllerData
 {
-    public Chirality Side { get; private set; }
+    public Chirality Side { get; set; }
     public int Index { get; set; }
     public string UniqueId { get; set; }
     public string RenderModel { get; set; }
@@ -83,6 +83,11 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
 
     Dictionary<int, SteamControllerData> mappedData = new Dictionary<int, SteamControllerData>();
     Dictionary<int, VR_ControllerState> mappedControllers = new Dictionary<int, VR_ControllerState>();
+    Dictionary<string, SteamControllerData> controllerDataByUniqueId =
+        new Dictionary<string, SteamControllerData>(StringComparer.Ordinal);
+
+    SteamVR_Events.Action connectedAction;
+    SteamVR_Events.Action newPosesAction;
 
     #region EVENTS
 
@@ -93,6 +98,7 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
     #endregion
 
     EDeviceActivityLevel _lastActivityLevel = EDeviceActivityLevel.k_EDeviceActivityLevel_Unknown;
+    bool _steamVRSystemAvailable;
 
     Dictionary<string, Tracker> trackers = new Dictionary<string, Tracker>();
 
@@ -145,6 +151,12 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
 
     void TrackerConnected(int index, string serial, string deviceType)
     {
+        if (string.IsNullOrWhiteSpace(serial))
+        {
+            Debug.LogWarning($"Ignoring tracker {index} because SteamVR did not provide a serial number.");
+            return;
+        }
+
         lock (actionQueue)
             actionQueue.Enqueue(() =>
             {
@@ -199,7 +211,36 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
     private void OnDeviceConnected(int index, bool connected)
     {
         if (!connected)
+        {
+            Debug.Log($"OnDeviceDisconnected: {index}");
+
+            invalidRoleControllers.RemoveAll(device => device.index == index);
+
+            if (mappedData.TryGetValue(index, out var data))
+                DeactivateControllerData(data);
+            if (mappedControllers.TryGetValue(index, out var controller))
+            {
+                controller.isTracking = false;
+                controller.isDeviceActive = false;
+            }
+
+            foreach (var tracker in trackers.Values)
+                if (tracker.deviceIndex == index)
+                    tracker.tracker.isTracking = false;
+
+            if (trackingReferences.TryGetValue(index, out var reference))
+                reference.State.isTracking = false;
+
+            if (headIndex == index)
+            {
+                if (head != null)
+                    head.isTracking = false;
+
+                headIndex = -1;
+            }
+
             return;
+        }
 
         var system = OpenVR.System;
 
@@ -242,11 +283,18 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
             // schedule for later
             if (role == ETrackedControllerRole.Invalid)
             {
-                // make sure it's not one of the already registered controllers
-                if (mappedControllers.ContainsKey(index))
-                    return;
+                // Do not keep polling a controller while SteamVR is rebuilding its role.
+                // Its serial-backed state remains reusable, and OnNewPoses retries the
+                // registration after the role becomes valid.
+                string serial = null;
+                if (mappedData.TryGetValue(index, out var mappedController))
+                {
+                    serial = mappedController.UniqueId;
+                    DeactivateControllerData(mappedController);
+                }
 
-                invalidRoleControllers.Add(new InvalidRoleDevice(index, null));
+                invalidRoleControllers.RemoveAll(device => device.index == index);
+                invalidRoleControllers.Add(new InvalidRoleDevice(index, serial));
             }
             else
             {
@@ -585,146 +633,71 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
         if (!string.IsNullOrWhiteSpace(uniqueId))
             knownControllerSerials.Add(uniqueId);
 
-        var system = OpenVR.System;
-
         var targetSide = (role == ETrackedControllerRole.LeftHand) ? Chirality.Left : Chirality.Right;
         var bodyNode = BodyNode.LeftController.GetSide(targetSide);
-        var isLeft = targetSide == Chirality.Left;
 
-        bool swapLeftAndRight = false;
-
-        if (isLeft && LeftData != null)
+        if (mappedData.TryGetValue(index, out var data))
         {
-            var newLeftRole = system.GetControllerRoleForTrackedDeviceIndex((uint)LeftData.Index);
-
-            if (newLeftRole == ETrackedControllerRole.RightHand)
+            if (ControllerIdentityMatches(data, renderModel, uniqueId))
             {
-                Debug.Log($"Left controller {LeftData.Index} is now right.");
-                swapLeftAndRight = true;
-            }
-        }
+                Debug.Log($"Device {index} is already registered with the same identity. Setting as active.");
 
-        if (!isLeft && RightData != null)
-        {
-            var newRightRole = system.GetControllerRoleForTrackedDeviceIndex((uint)RightData.Index);
+                var sideChanged = data.Side != targetSide;
+                if (sideChanged)
+                    DeactivateControllerData(data);
 
-            if (newRightRole == ETrackedControllerRole.LeftHand)
-            {
-                Debug.Log($"Right controller {RightData.Index} is now left.");
-                swapLeftAndRight = true;
-            }
-        }
+                UpdateControllerIdentity(data, index, renderModel, uniqueId, targetSide, bodyNode);
+                if (sideChanged)
+                    InitHandData(data.Controller);
 
-        if (swapLeftAndRight)
-        {
-            Debug.Log($"Swapping left and right");
-
-            if (LeftData == null || RightData == null)
-            {
-                // One of the sides is not registered yet. This means we need to register the displaced
-                // controller as a new one for the other side (which will create structures for the other side)
-                // and then we re-use the already generated structures for this controller
-                var displacedData = LeftData ?? RightData;
-                var displacedIndex = displacedData.Index;
-                var displacedUniqueId = displacedData.UniqueId;
-                var displacedRenderModel = displacedData.RenderModel;
-
-                Debug.Log($"The other side does not exist, re-registering {displacedIndex} as other side and mapping {index} to current one");
-
-                // We saved the data. We need to swap out the indexes first, otherwise the registration will think
-                // that the displaced index is already registered
-
-                // We want this to register a new controller for the other side, so we remove this one
-                mappedControllers.Remove(displacedIndex);
-                // We also want it to map new data
-                mappedData.Remove(displacedIndex);
-
-                // Re-use the existing data for the controller that's being registered right now
-                displacedData.Index = index;
-                displacedData.RenderModel = renderModel;
-                displacedData.UniqueId = uniqueId;
-
-                // Map it to the new index
-                mappedControllers[index] = displacedData.Controller;
-                mappedData[index] = displacedData;
-
-                // Register the displaced controller as the other side
-                RegisterController(displacedIndex, SteamRole(displacedData.Side.GetOther()), displacedRenderModel, displacedUniqueId);
-
-                // We are done here. We don't need to register new data - that's been done of the other controller
-                return;
-            }
-            else
-            {
-                Debug.Log($"Both sides are allocated, swapping left {LeftData.Index} & right {RightData.Index}");
-
-                // Both controllers are already registered, so we just swap the sides for them
-                var _leftIndex = LeftData.Index;
-                var _rightIndex = RightData.Index;
-
-                LeftData.Index = _rightIndex;
-                RightData.Index = _leftIndex;
-
-                mappedData[LeftData.Index] = LeftData;
-                mappedData[RightData.Index] = RightData;
-
-                mappedControllers[LeftData.Index] = LeftData.Controller;
-                mappedControllers[RightData.Index] = RightData.Controller;
-
-                return;
-            }
-        }
-
-        VR_ControllerState controller = null;
-
-        // Check if we already have an existing controller mapped to this index
-        mappedControllers.TryGetValue(index, out controller);
-
-        // If we don't have a controller for this one yet, register it now
-        if (controller == null)
-        {
-            controller = CreateController(uniqueId, renderModel, targetSide, bodyNode);
-
-            Debug.Log("Registering New Controller: " + controller + " [" + XRInputGuard.Status() + "]");
-
-            // Store the mapped controller in case it needs to be remapped later
-            mappedControllers.Add(index, controller);
-        }
-
-        mappedData.TryGetValue(index, out var data);
-
-        // We already have mapped data for this
-        if (data != null)
-        {
-            Debug.Log($"Device {index} is already registered. Setting as active.");
-
-            if (data.Side != targetSide)
-            {
-                Debug.Log($"Controller {index} changed from {data.Side} to {targetSide}. Remapping");
-
-                // Invalidate the existing data. We want to keep this data for the other controller
-                data.Index = -1;
-                data.Controller = null;
-                mappedData.Remove(index);
-
-                // Re-run the registration. This will create new data for the correct side now
-                RegisterController(index, role, renderModel, uniqueId);
-
+                mappedControllers[index] = data.Controller;
+                SetDataAsActive(data, index);
                 return;
             }
 
-            // Just assign it as active one
+            Debug.Log($"Device index {index} was reused by a different controller. Replacing the stale mapping.");
+            DeactivateAndUnmapController(index, data);
+        }
+
+        if (TryFindKnownController(renderModel, uniqueId, out data))
+        {
+            Debug.Log($"Controller {uniqueId} moved from device index {data.Index} to {index}. Remapping existing state.");
+
+            var sideChanged = data.Side != targetSide;
+            DeactivateControllerData(data);
+            RemoveIndexMappings(data);
+
+            UpdateControllerIdentity(data, index, renderModel, uniqueId, targetSide, bodyNode);
+            if (sideChanged)
+                InitHandData(data.Controller);
+
+            mappedData[index] = data;
+            mappedControllers[index] = data.Controller;
             SetDataAsActive(data, index);
             return;
         }
 
-        InitHandData(controller);
+        if (!string.IsNullOrWhiteSpace(uniqueId)
+            && controllerDataByUniqueId.TryGetValue(uniqueId, out var staleIdentity))
+        {
+            Debug.LogWarning($"Controller {uniqueId} changed render model from {staleIdentity.RenderModel} to {renderModel}. Replacing its state.");
+            RetireControllerData(staleIdentity);
+        }
 
-        HandState fingerHand = null;
+        // A controller without mapped data has no verifiable identity and must not be reused.
+        mappedControllers.Remove(index);
+
+        var controller = CreateController(uniqueId, renderModel, targetSide, bodyNode);
+
+        Debug.Log("Registering New Controller: " + controller + " [" + XRInputGuard.Status() + "]");
+
+        mappedControllers.Add(index, controller);
+
+        InitHandData(controller);
 
         var hand = new HandState();
         hand.uniqueId = uniqueId;
-        hand.chirality = isLeft ? Chirality.Left : Chirality.Right;
+        hand.chirality = targetSide;
         hand.tracksMetacarpals = true;
         hand.isTracking = false;
 
@@ -733,33 +706,135 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
 
         inputManager.State.vr.hands.Add(hand);
 
-        fingerHand = hand;
-
         data = new SteamControllerData(targetSide, index, renderModel, uniqueId);
 
         data.Controller = controller;
-        data.Hand = fingerHand;
+        data.Hand = hand;
 
         // Register the data
         mappedData.Add(index, data);
+        if (!string.IsNullOrWhiteSpace(uniqueId))
+            controllerDataByUniqueId[uniqueId] = data;
 
         SetDataAsActive(data, index);
     }
 
+    bool ControllerIdentityMatches(SteamControllerData data, string renderModel, string uniqueId)
+    {
+        return data != null
+            && data.Controller != null
+            && !string.IsNullOrWhiteSpace(uniqueId)
+            && string.Equals(data.RenderModel, renderModel, StringComparison.Ordinal)
+            && string.Equals(data.UniqueId, uniqueId, StringComparison.Ordinal);
+    }
+
+    bool TryFindKnownController(string renderModel, string uniqueId, out SteamControllerData data)
+    {
+        data = null;
+
+        return !string.IsNullOrWhiteSpace(uniqueId)
+            && controllerDataByUniqueId.TryGetValue(uniqueId, out data)
+            && ControllerIdentityMatches(data, renderModel, uniqueId);
+    }
+
+    void UpdateControllerIdentity(SteamControllerData data, int index, string renderModel, string uniqueId,
+        Chirality side, BodyNode bodyNode)
+    {
+        data.Index = index;
+        data.RenderModel = renderModel;
+        data.UniqueId = uniqueId;
+        data.Side = side;
+
+        if (data.Controller != null)
+        {
+            data.Controller.deviceID = uniqueId;
+            data.Controller.deviceModel = renderModel;
+            data.Controller.side = side;
+            data.Controller.bodyNode = bodyNode;
+        }
+
+        if (data.Hand != null)
+        {
+            data.Hand.uniqueId = uniqueId;
+            data.Hand.chirality = side;
+        }
+    }
+
+    void DeactivateAndUnmapController(int index, SteamControllerData data)
+    {
+        DeactivateControllerData(data);
+
+        mappedData.Remove(index);
+        mappedControllers.Remove(index);
+    }
+
+    void RemoveIndexMappings(SteamControllerData data)
+    {
+        var indices = new List<int>();
+
+        foreach (var mapping in mappedData)
+            if (ReferenceEquals(mapping.Value, data))
+                indices.Add(mapping.Key);
+
+        foreach (var index in indices)
+        {
+            mappedData.Remove(index);
+            mappedControllers.Remove(index);
+        }
+    }
+
+    void RetireControllerData(SteamControllerData data)
+    {
+        if (data == null)
+            return;
+
+        DeactivateControllerData(data);
+        RemoveIndexMappings(data);
+
+        inputManager.State.vr.controllers?.Remove(data.Controller);
+        inputManager.State.vr.hands?.Remove(data.Hand);
+
+        if (!string.IsNullOrWhiteSpace(data.UniqueId)
+            && controllerDataByUniqueId.TryGetValue(data.UniqueId, out var knownData)
+            && ReferenceEquals(knownData, data))
+            controllerDataByUniqueId.Remove(data.UniqueId);
+    }
+
+    void DeactivateControllerData(SteamControllerData data)
+    {
+        if (data == null)
+            return;
+
+        data.ClearActiveStatus();
+
+        if (ReferenceEquals(LeftData, data))
+            LeftData = null;
+        if (ReferenceEquals(RightData, data))
+            RightData = null;
+    }
+
     void SetDataAsActive(SteamControllerData data, int index)
     {
+        data.Index = index;
+
         // Reset the active status to make sure it's re-enabled
         data.ClearActiveStatus();
 
         if (data.Side == Chirality.Left)
         {
-            LeftData?.ClearActiveStatus();
+            if (!ReferenceEquals(LeftData, data))
+            {
+                LeftData?.ClearActiveStatus();
+            }
 
             LeftData = data;
         }
         else
         {
-            RightData?.ClearActiveStatus();
+            if (!ReferenceEquals(RightData, data))
+            {
+                RightData?.ClearActiveStatus();
+            }
 
             RightData = data;
         }
@@ -839,6 +914,9 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
     string GetSerialNumber(int index)
     {
         var system = OpenVR.System;
+        if (system == null || index < 0 || index >= OpenVR.k_unMaxTrackedDeviceCount)
+            return null;
+
         var error = default(ETrackedPropertyError);
 
         var capacity = system.GetStringTrackedDeviceProperty((uint)index, ETrackedDeviceProperty.Prop_SerialNumber_String, null, 0, ref error);
@@ -865,6 +943,15 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
 
         if (system != null)
         {
+            for (int i = invalidRoleControllers.Count - 1; i >= 0; i--)
+            {
+                var invalidIndex = invalidRoleControllers[i].index;
+                if (invalidIndex < 0
+                    || invalidIndex >= OpenVR.k_unMaxTrackedDeviceCount
+                    || !system.IsTrackedDeviceConnected((uint)invalidIndex))
+                    invalidRoleControllers.RemoveAt(i);
+            }
+
             if (LeftData == null || RightData == null)
             {
                 for (int i = invalidRoleControllers.Count - 1; i >= 0; i--)
@@ -919,7 +1006,7 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
         if (trackedObject == null)
             return;
 
-        if (index >= poses.Length)
+        if (index < 0 || index >= poses.Length)
         {
             trackedObject.IsTracking = false;
             return;
@@ -985,8 +1072,8 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
 
         Debug.Log("SteamVR Driver: Registering Events");
 
-        var connectedAction = SteamVR_Events.DeviceConnectedAction(OnDeviceConnected);
-        var newPosesAction = SteamVR_Events.NewPosesAction(OnNewPoses);
+        connectedAction = SteamVR_Events.DeviceConnectedAction(OnDeviceConnected);
+        newPosesAction = SteamVR_Events.NewPosesAction(OnNewPoses);
 
         connectedAction.Enable(true);
         newPosesAction.Enable(true);
@@ -1073,9 +1160,43 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
         SteamVR_Events.System(EVREventType.VREvent_DashboardDeactivated).Listen(OnDashboardDeactivated);
     }
 
+    void OnDestroy()
+    {
+        DeactivateControllerData(LeftData);
+        DeactivateControllerData(RightData);
+
+        connectedAction?.Enable(false);
+        newPosesAction?.Enable(false);
+
+        SteamVR_Events.System(EVREventType.VREvent_DashboardActivated).Remove(OnDashboardActivated);
+        SteamVR_Events.System(EVREventType.VREvent_DashboardDeactivated).Remove(OnDashboardDeactivated);
+
+        if (inputManager != null)
+            inputManager.OnVR_ActiveChanged -= Manager_OnVR_ActiveChanged;
+    }
+
     private void Manager_OnVR_ActiveChanged(bool vrActive)
     {
         SteamVR.instance?.compositor.SuspendRendering(!vrActive);
+    }
+
+    void ReconcileConnectedDevices(CVRSystem system)
+    {
+        if (LeftData != null
+            && (LeftData.Index < 0
+                || LeftData.Index >= OpenVR.k_unMaxTrackedDeviceCount
+                || !system.IsTrackedDeviceConnected((uint)LeftData.Index)))
+            DeactivateControllerData(LeftData);
+
+        if (RightData != null
+            && (RightData.Index < 0
+                || RightData.Index >= OpenVR.k_unMaxTrackedDeviceCount
+                || !system.IsTrackedDeviceConnected((uint)RightData.Index)))
+            DeactivateControllerData(RightData);
+
+        for (uint index = 0; index < OpenVR.k_unMaxTrackedDeviceCount; index++)
+            if (system.IsTrackedDeviceConnected(index))
+                OnDeviceConnected((int)index, true);
     }
 
     public override void UpdateState(InputState state)
@@ -1086,13 +1207,31 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
             while (actionQueue.Count > 0)
                 actionQueue.Dequeue()();
 
+        var system = OpenVR.System;
+        if (system == null)
+        {
+            _steamVRSystemAvailable = false;
+            state.vr.userPresentInHeadset = false;
+
+            DeactivateControllerData(LeftData);
+            DeactivateControllerData(RightData);
+
+            if (head != null)
+                head.isTracking = false;
+
+            return;
+        }
+
+        var reconcileDevices = !_steamVRSystemAvailable;
+        _steamVRSystemAvailable = true;
+
         if (headIndex >= 0)
         {
             vr.headsetState.batteryCharging = GetIsCharging((uint)headIndex);
             vr.headsetState.batteryLevel = GetBatteryLevel((uint)headIndex);
         }
 
-        var activityLevel = OpenVR.System.GetTrackedDeviceActivityLevel(OpenVR.k_unTrackedDeviceIndex_Hmd);
+        var activityLevel = system.GetTrackedDeviceActivityLevel(OpenVR.k_unTrackedDeviceIndex_Hmd);
 
         // Update if the user is present in the headset
         state.vr.userPresentInHeadset = activityLevel == EDeviceActivityLevel.k_EDeviceActivityLevel_UserInteraction;
@@ -1100,13 +1239,20 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
         if (activityLevel != _lastActivityLevel)
         {
             Debug.Log($"Device Activity Level changed from {_lastActivityLevel} to {activityLevel}");
+
+            if (activityLevel == EDeviceActivityLevel.k_EDeviceActivityLevel_UserInteraction)
+                reconcileDevices = true;
+
             _lastActivityLevel = activityLevel;
         }
 
+        if (reconcileDevices)
+            ReconcileConnectedDevices(system);
+
         if (LeftData?.Controller != null)
-            UpdateController(LeftData.Controller, SteamVR_Input_Sources.LeftHand);
+            UpdateController(LeftData, SteamVR_Input_Sources.LeftHand);
         if (RightData?.Controller != null)
-            UpdateController(RightData.Controller, SteamVR_Input_Sources.RightHand);
+            UpdateController(RightData, SteamVR_Input_Sources.RightHand);
 
         foreach (var tracker in trackers)
             if (tracker.Value.tracker.isTracking)
@@ -1215,14 +1361,21 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
         }
     }
 
-    void UpdateController(VR_ControllerState controller, SteamVR_Input_Sources source)
+    void UpdateController(SteamControllerData data, SteamVR_Input_Sources source)
     {
-        HandState fingerHand;
+        var controller = data.Controller;
+        var system = OpenVR.System;
 
-        if (source == SteamVR_Input_Sources.LeftHand)
-            fingerHand = LeftData.Hand;
-        else
-            fingerHand = RightData.Hand;
+        if (controller == null
+            || data.Index < 0
+            || system == null
+            || !system.IsTrackedDeviceConnected((uint)data.Index))
+        {
+            data.ClearActiveStatus();
+            return;
+        }
+
+        var fingerHand = data.Hand;
 
         // It's always active from the renderer end. The main process can filter this depending on whether VR is active or not
         controller.isDeviceActive = true;

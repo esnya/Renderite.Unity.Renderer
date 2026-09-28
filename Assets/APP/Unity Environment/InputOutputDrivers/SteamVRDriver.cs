@@ -374,6 +374,24 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
                 controller.handRotation = (controller.handRotation.ToUnity() * Quaternion.Inverse(Quaternion.Euler(90, 90, 90))).ToRender();
                 break;
 
+            case ViveFocus3ControllerState _:
+                controller.hasBoundHand = DisableSkeletalModel;
+
+                if (isLeft)
+                {
+                    SteamVR_Actions.Focus3.left_hand.SetSkeletalTransformSpace(EVRSkeletalTransformSpace.Model);
+                    SteamVR_Actions.Focus3.left_hand.SetRangeOfMotion(EVRSkeletalMotionRange.WithoutController);
+                }
+                else
+                {
+                    SteamVR_Actions.Focus3.right_hand.SetSkeletalTransformSpace(EVRSkeletalTransformSpace.Model);
+                    SteamVR_Actions.Focus3.right_hand.SetRangeOfMotion(EVRSkeletalMotionRange.WithoutController);
+                }
+
+                controller.handPosition = Vector3.zero.ToRender();
+                controller.handRotation = Quaternion.identity.ToRender();
+                break;
+
             case CosmosControllerState cosmos:
                 controller.hasBoundHand = DisableSkeletalModel;
 
@@ -528,6 +546,14 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
             var cosmos = new CosmosControllerState();
 
             controller = cosmos;
+        }
+        else if (renderModel.IndexOf("vive_focus3_controller", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            SteamVR_Actions.Focus3.Activate(SteamVR_Input_Sources.Any);
+
+            var focus3 = new ViveFocus3ControllerState();
+
+            controller = focus3;
         }
         else if (renderModel.Contains("1642_1118"))
         {
@@ -783,6 +809,8 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
             set = SteamVR_Actions.OculusTouch;
         else if (data.Controller is CosmosControllerState)
             set = SteamVR_Actions.Cosmos;
+        else if (data.Controller is ViveFocus3ControllerState)
+            set = SteamVR_Actions.Focus3;
         else if (data.Controller is HP_ReverbControllerState)
             set = SteamVR_Actions.HPReverb;
         else if (data.Controller is WindowsMR_ControllerState)
@@ -1267,6 +1295,10 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
                 UpdateController(touch, fingerHand, source);
                 break;
 
+            case ViveFocus3ControllerState focus3:
+                UpdateController(focus3, fingerHand, source);
+                break;
+
             case HP_ReverbControllerState hp:
                 UpdateController(hp, fingerHand, source);
                 break;
@@ -1462,6 +1494,32 @@ public class SteamVRDriver : InputDriver, IDriverHeadDevice, IOutputDriver
 
         if (hand != null)
             UpdateHand(hand, controller, (hand.chirality == Chirality.Left) ? cosmos.left_hand : cosmos.right_hand);
+    }
+
+    void UpdateController(ViveFocus3ControllerState controller, HandState hand, SteamVR_Input_Sources source)
+    {
+        var focus3 = SteamVR_Actions.Focus3;
+
+        controller.joystickRaw = focus3.joystick.GetAxis(source).ToRender();
+        controller.joystickTouch = focus3.joystick_touch.GetState(source);
+        controller.joystickClick = focus3.joystick_click.GetState(source);
+
+        controller.trigger = focus3.trigger.GetAxis(source);
+        controller.triggerTouch = focus3.trigger_touch.GetState(source);
+        controller.triggerClick = focus3.trigger_click.GetState(source);
+
+        controller.grip = focus3.grip.GetAxis(source);
+        controller.gripTouch = focus3.grip_touch.GetState(source);
+        controller.gripClick = focus3.grip_click.GetState(source);
+
+        controller.buttonXA = focus3.button_XA.GetState(source);
+        controller.buttonYB = focus3.button_YB.GetState(source);
+
+        controller.menu = focus3.menu.GetState(source);
+        controller.thumbrestTouch = focus3.thumbrest_touch.GetState(source);
+
+        if (hand != null)
+            UpdateHand(hand, controller, (hand.chirality == Chirality.Left) ? focus3.left_hand : focus3.right_hand);
     }
 
     void UpdateController(GenericControllerState controller, HandState hand, SteamVR_Input_Sources source)
